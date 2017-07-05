@@ -41,10 +41,23 @@
 
 class Solution:
     def __init__(self):
-        # If you want to keep track of any variables, you can initialize them here using self.var = value
-        # e.g.
-        #   self.moveCount = 0
+        self.moveCount = 0
+        self.availablePaths = 0
+        self.curDir = 'N'
         pass
+
+    def scan(self, cat):
+        if not cat.isFacingN():
+            #adjust north
+            while not cat.isFacingN():
+                cat.turnRight();
+        elif cat.isFacingN():
+            #the scan
+            for n in range(3):
+                if not cat.isBlocked():
+                    self.availablePaths += 1
+                cat.turnRight()
+        return self.availablePaths
 
     # Choose your level here: 'easy', 'medium', or 'hard'!
     def getLevel(self):
@@ -57,4 +70,38 @@ class Solution:
     # Your solution!
     def moveTowardPizza(self, cat):
         # Wheeeee!
-        cat.turnLeft()
+        self.scan(cat)
+        '''
+        if self.getLevel() == 'easy':
+            if self.moveCount < 2:
+                cat.turnRight()
+            elif self.moveCount < 3:
+                cat.walk()
+            elif self.moveCount < 4:
+                cat.turnRight()
+            elif self.moveCount < 7:
+                cat.walk()
+            elif self.moveCount < 8:
+                cat.turnLeft()
+            elif self.moveCount < 10:
+                cat.walk()
+            elif self.moveCount < 11:
+                cat.turnLeft()
+            elif self.moveCount < 12:
+                cat.walk()
+            elif self.moveCount < 13:
+                cat.turnRight()
+            elif self.moveCount < 15:
+                cat.walk()
+            elif self.moveCount < 16:
+                cat.turnRight()
+            elif self.moveCount < 19:
+                cat.walk()
+            elif self.moveCount < 20:
+                cat.turnRight()
+            elif self.moveCount < 21:
+                cat.walk()
+        '''
+        #if self.getLevel() == 'medium':
+            #pass
+        #self.moveCount += 1
