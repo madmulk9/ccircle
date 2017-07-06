@@ -46,11 +46,11 @@ class StockTrader:
     #    0.5 -> moderate
     #    1.0 -> hardest
     def getDifficulty(self):
-        return 0.0
+        return 0.5
 
     # Controls how fast the simulation runs; 0 = fastest
     def getPauseTime(self):
-        return 0.1
+        return 0.01
 
     # Use different numbers to get different random variations of the simulation
     def getSeed(self):
@@ -63,7 +63,31 @@ class StockTrader:
         syms = market.getStockSymbols()
         for sym in syms:
             price = market.getPrice(sym)
-            if price < 10 and account.getBalance() >= price:
-                market.buy(account, sym, 1)
-            if price > 10 and account.getShares(sym) > 0:
-                market.sell(account, sym, 1)
+            if account.getBalance() >= 5000:
+                if price < 40 and account.getBalance() >= price:
+                    market.buy(account, sym, 1)
+                if price > 75 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
+            if account.getBalance() >= 2000:
+                if price < 40 and account.getBalance() >= price:
+                    market.buy(account, sym, 1)
+                if price > 65 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
+            elif account.getBalance() >= 1000:
+                if price < 35 and account.getBalance() >= price:
+                    market.buy(account, sym, 1)
+                if price > 55 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
+            elif account.getBalance() >= 500:
+                if price < 30 and account.getBalance() >= price:
+                    market.buy(account, sym, 1)
+                if price > 45 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
+            elif account.getBalance() >= 250:
+                if price < 25 and account.getBalance() >= price:
+                    market.buy(account, sym, 1)
+                if price > 45 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
+            else:
+                if price > 35 and account.getShares(sym) > 0:
+                    market.sell(account, sym, 1)
