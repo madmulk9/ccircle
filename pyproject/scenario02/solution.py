@@ -1,5 +1,5 @@
 # Your solution goes in this file!
-
+from math import ceil
 '''
   --- ACCOUNT ------------------------------------------------------------------
 
@@ -46,15 +46,25 @@ class StockTrader:
     #    0.5 -> moderate
     #    1.0 -> hardest
     def getDifficulty(self):
-        return 0.5
+        return 1.0
 
     # Controls how fast the simulation runs; 0 = fastest
     def getPauseTime(self):
-        return 0.01
+        return 0.3
 
     # Use different numbers to get different random variations of the simulation
     def getSeed(self):
         return 1337
+
+    def sell(self, account, market, sym):
+        if account.getShares(sym) >= 1000:
+            return market.sell(account, sym, account.getShares(sym))
+        elif account.getShares(sym) >= 100:
+            return market.sell(account, sym, ceil(account.getShares(sym) / 2))
+        elif account.getShares(sym) >= 25:
+            return market.sell(account, sym, 10)
+        else:
+            return market.sell(account, sym, 1)
 
     # Analyze the market for the current day and make trades as you see fit. Try to make as much money as you can!
     def trade(self, account, market):
@@ -65,24 +75,24 @@ class StockTrader:
             price = market.getPrice(sym)
             if account.getBalance() >= 5000:
                 if price < 40 and account.getBalance() >= price:
-                    market.buy(account, sym, 1)
-                if price > 75 and account.getShares(sym) > 0:
-                    market.sell(account, sym, 1)
-            if account.getBalance() >= 2000:
+                    market.buy(account, sym, ceil(account.getBalance() / 100))
+                if price > 60 and account.getShares(sym) > 0:
+                    self.sell(account, market, sym)
+            elif account.getBalance() >= 2000:
                 if price < 40 and account.getBalance() >= price:
-                    market.buy(account, sym, 1)
-                if price > 65 and account.getShares(sym) > 0:
-                    market.sell(account, sym, 1)
+                    market.buy(account, sym, ceil(account.getBalance() / 50))
+                if price > 55 and account.getShares(sym) > 0:
+                    self.sell(account, market, sym)
             elif account.getBalance() >= 1000:
                 if price < 35 and account.getBalance() >= price:
-                    market.buy(account, sym, 1)
-                if price > 55 and account.getShares(sym) > 0:
-                    market.sell(account, sym, 1)
+                    market.buy(account, sym, 3)
+                if price > 50 and account.getShares(sym) > 0:
+                    self.sell(account, market, sym)
             elif account.getBalance() >= 500:
                 if price < 30 and account.getBalance() >= price:
                     market.buy(account, sym, 1)
                 if price > 45 and account.getShares(sym) > 0:
-                    market.sell(account, sym, 1)
+                    self.sell(account, market, sym)
             elif account.getBalance() >= 250:
                 if price < 25 and account.getBalance() >= price:
                     market.buy(account, sym, 1)
