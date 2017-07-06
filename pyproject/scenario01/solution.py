@@ -1,6 +1,7 @@
 
 import worlds
 # Your solution goes in this file!
+#taking that L
 
 '''
     GOAL: Fill in the code for 'moveTowardPizza' to ensure that the cat finds the pizza!
@@ -48,8 +49,9 @@ import worlds
 class Solution:
     def __init__(self):
         self.moveCount = 0
-        self.availablePaths = 0
-        self.curDir = 'N'
+        #                      N  E  S  W
+        self.availablePaths = [0, 0, 0, 0]
+        self.prevDir = ''
         pass
 
     def scan(self, cat):
@@ -61,9 +63,32 @@ class Solution:
             #the scan
             for n in range(3):
                 if not cat.isBlocked():
-                    self.availablePaths += 1
+                    self.availablePaths[n] = 1
                 cat.turnRight()
         return self.availablePaths
+
+    def move(self, cat):
+        if self.availablePaths[0] == 1 and not self.prevDir == 'N':
+            while not cat.isFacingN():
+                cat.turnRight()
+            while not cat.isBlocked():
+                cat.walk()
+        elif self.availablePaths[1] == 1 and not self.prevDir == 'E':
+            while not cat.isFacingE():
+                cat.turnRight()
+            while not cat.isBlocked():
+                cat.walk()
+        elif self.availablePaths[2] == 1 and not self.prevDir == 'S':
+            while not cat.isFacingS():
+                cat.turnRight()
+            while not cat.isBlocked():
+                cat.walk()
+        elif self.availablePaths[3] == 1 and not self.prevDir == 'W':
+            while not cat.isFacingW():
+                cat.turnRight()
+            while not cat.isBlocked():
+                cat.walk()
+
 
     # Choose your level here: 'easy', 'medium', or 'hard'!
     def getLevel(self):
@@ -77,7 +102,9 @@ class Solution:
     def moveTowardPizza(self, cat):
         # Wheeeee!
         self.scan(cat)
-        '''
+        self.move(cat)
+        print(self.scan(cat))
+        """
         if self.getLevel() == 'easy':
             if self.moveCount < 2:
                 cat.turnRight()
@@ -107,7 +134,7 @@ class Solution:
                 cat.turnRight()
             elif self.moveCount < 21:
                 cat.walk()
-        '''
+        """
         #if self.getLevel() == 'medium':
             #pass
         #self.moveCount += 1
