@@ -11,8 +11,8 @@ class World:
         for obj in self.objects:
             obj.draw(window)
 
-    def update(self):
+    def update(self, dt):
         for obj in self.objects:
-            obj.update()
+            obj.update(dt)
         # TODO: World updater
         pass
