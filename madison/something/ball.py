@@ -3,7 +3,7 @@ class Ball:
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.vx = random.randint(40, 100)
+        self.vx = 0#random.randint(40, 100)
         self.vy = 0
         self.fx = 0
         self.fy = 0
@@ -14,7 +14,8 @@ class Ball:
         self.fy += fy
 
     def draw(self, window):
-        window.drawCircle(self.x, self.y, 16, 1, 0, 0.2)
+        window.drawCircle(self.x, self.y, 16, 0, 0, 0)
+        window.drawCircle(self.x, self.y, 14, 1, 0, 0.2)
 
     def update(self, dt):
         accelX = self.fx / self.mass
@@ -27,13 +28,17 @@ class Ball:
         self.fy = 0
 
         if self.x < 0:
-            self.vx *= -0.95
+            self.vx *= -1.0
             self.x = 0
 
         if self.x > 800:
-            self.vx *= -0.95
+            self.vx *= -1.0
             self.x = 800
 
         if self.y > 500:
             self.vy *= -1.0
             self.y = 500
+
+        if self.y < 0:
+            self.vy *= -1.0
+            self.y = 0
