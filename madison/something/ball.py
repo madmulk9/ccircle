@@ -28,17 +28,17 @@ class Ball:
         self.fy = 0
 
         if self.x < 0:
-            self.vx *= -1.0
+            self.vx *= -0.9
             self.x = 0
 
         if self.x > 800:
-            self.vx *= -1.0
+            self.vx *= -0.9
             self.x = 800
 
         if self.y > 500:
-            self.vy *= -1.0
+            self.vy *= -0.9
             self.y = 500
 
         if self.y < 0:
-            self.vy *= -1.0
+            self.vy *= -0.9
             self.y = 0
