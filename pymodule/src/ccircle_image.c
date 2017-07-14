@@ -5,17 +5,19 @@
 typedef struct {
   PyObject_HEAD
   uint handle;
-} ccircle_image_t;
+  int sx, sy;
+} CC_Image;
 
-static int
-ccircle_image_init ( ccircle_image_t* self, PyObject* args )
-{
+static int CC_Image_Init ( CC_Image* self, PyObject* args ) {
+  if (!CC_GLContext_Exists())
+    Fatal("A window must be created before images can be loaded");
+
   cstr path;
   if (!PyArg_ParseTuple(args, "s", &path))
     return -1;
 
-  int sx, sy, channels;
-  uchar* data = ccircle_image_load(path, &sx, &sy, &channels);
+  int channels;
+  uchar* data = CC_Image_Load(path, &self->sx, &self->sy, &channels);
   if (!data)
     return -1;
 
@@ -31,58 +33,96 @@ ccircle_image_init ( ccircle_image_t* self, PyObject* args )
   glTexImage2D(GL_TEXTURE_2D,
     0,
     GL_RGBA8,
-    sx, sy, 0,
+    self->sx, self->sy, 0,
     channels == 3 ? GL_RGB : GL_RGBA,
     GL_UNSIGNED_BYTE,
     data);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  ccircle_image_free(data);
-
+  CC_Image_Free(data);
   return 0;
 }
 
-/* --- Image::draw ---------------------------------------------------------- */
-
-/* TODO : Should take a window object and make sure the window's GL context is
- *        current. */
-
-static PyObject*
-ccircle_image_draw ( ccircle_image_t* self, PyObject* args )
+static void CC_Image_Draw_With_UVs (
+  CC_Image* self,
+  float x, float y,
+  float sx, float sy,
+  float u1, float v1,
+  float u2, float v2,
+  float angle )
 {
-  float x, y, sx, sy;
-  if (!PyArg_ParseTuple(args, "ffff", &x, &y, &sx, &sy))
-    return 0;
-
   glEnable(GL_TEXTURE_2D);
   glBindTexture(GL_TEXTURE_2D, self->handle);
   glColor4f(1, 1, 1, 1);
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+  glLoadIdentity();
+  glTranslatef(0.5f * sx + x, 0.5f * sy + y, 0);
+  glRotatef(angle, 0, 0, -1);
+  glTranslatef(-0.5f * sx, -0.5f * sy, 0);
+
   glBegin(GL_QUADS);
-  glTexCoord2f(0, 0); glVertex2f(x, y);
-  glTexCoord2f(0, 1); glVertex2f(x, y + sy);
-  glTexCoord2f(1, 1); glVertex2f(x + sx, y + sy);
-  glTexCoord2f(1, 0); glVertex2f(x + sx, y);
+  glTexCoord2f(u1, v1); glVertex2f(0, 0);
+  glTexCoord2f(u1, v2); glVertex2f(0, sy);
+  glTexCoord2f(u2, v2); glVertex2f(sx, sy);
+  glTexCoord2f(u2, v1); glVertex2f(sx, 0);
   glEnd();
+
+  glPopMatrix();
   glDisable(GL_TEXTURE_2D);
+}
+
+/* --- Image.draw ----------------------------------------------------------- */
+
+static PyObject* CC_Image_Draw ( CC_Image* self, PyObject* args ) {
+  float x, y, sx, sy;
+  float angle = 0.0f;
+  if (!PyArg_ParseTuple(args, "ffff|f", &x, &y, &sx, &sy, &angle))
+    return 0;
+
+  CC_Image_Draw_With_UVs(self, x, y, sx, sy, 0.0f, 0.0f, 1.0f, 1.0f, angle);
   Py_RETURN_NONE;
+}
+
+/* --- Image.drawSub -------------------------------------------------------- */
+
+static PyObject* CC_Image_DrawSub ( CC_Image* self, PyObject* args ) {
+  float x, y, sx, sy;
+  float subX, subY, subSX, subSY;
+  float angle = 0.0f;
+  if (!PyArg_ParseTuple(args, "ffffffff|f",
+       &x, &y, &sx, &sy, &subX, &subY, &subSX, &subSY, &angle))
+    return 0;
+
+  float u1 = subX / self->sx;
+  float v1 = subY / self->sy;
+  float u2 = (subX + subSX) / self->sx;
+  float v2 = (subY + subSY) / self->sy;
+  CC_Image_Draw_With_UVs(self, x, y, sx, sy, u1, v1, u2, v2, angle);
+  Py_RETURN_NONE;
+}
+
+/* --- Image.getSize -------------------------------------------------------- */
+
+static PyObject* CC_Image_GetSize( CC_Image* self, PyObject* args ) {
+  return Py_BuildValue("(ii)", self->sx, self->sy);
 }
 
 /* -------------------------------------------------------------------------- */
 
-static PyMethodDef ccircle_image_methods[] = {
-  { "draw", (PyCFunction)ccircle_image_draw, METH_VARARGS,
-    "Draw the image to the current window" },
+static PyMethodDef methods[] = {
+  { "draw", (PyCFunction)CC_Image_Draw, METH_VARARGS, 0 },
+  { "drawSub", (PyCFunction)CC_Image_DrawSub, METH_VARARGS, 0 },
+  { "getSize", (PyCFunction)CC_Image_GetSize, METH_VARARGS, 0 },
   { 0 },
 };
 
-
-/* -------------------------------------------------------------------------- */
-
-static PyTypeObject ccircle_image_pytype = {
+static PyTypeObject CC_Image_PyType = {
   PyVarObject_HEAD_INIT(0, 0)
   "ccircle.Image",
-  sizeof(ccircle_image_t),
+  sizeof(CC_Image),
   0,                                  /* tp_itemsize */
   0,                                  /* tp_dealloc */
   0,                                  /* tp_print */
@@ -107,7 +147,7 @@ static PyTypeObject ccircle_image_pytype = {
   0,                                  /* tp_weaklistoffset */
   0,                                  /* tp_iter */
   0,                                  /* tp_iternext */
-  ccircle_image_methods,              /* tp_methods */
+  methods,                            /* tp_methods */
   0,                                  /* tp_members */
   0,                                  /* tp_getset */
   0,                                  /* tp_base */
@@ -115,17 +155,16 @@ static PyTypeObject ccircle_image_pytype = {
   0,                                  /* tp_descr_get */
   0,                                  /* tp_descr_set */
   0,                                  /* tp_dictoffset */
-  (initproc)ccircle_image_init,       /* tp_init */
+  (initproc)CC_Image_Init,            /* tp_init */
   0,                                  /* tp_alloc */
   0,                                  /* tp_new */
 };
 
 /* -------------------------------------------------------------------------- */
 
-void ccircle_init_image ( PyObject* self )
-{
-  ccircle_image_pytype.tp_new = PyType_GenericNew;
-  if (PyType_Ready(&ccircle_image_pytype) < 0)
-    Fatal("Failed to create image type");
-  PyModule_AddObject(self, "Image", (PyObject*)&ccircle_image_pytype);
+void CC_Init_Image ( PyObject* self ) {
+  CC_Image_PyType.tp_new = PyType_GenericNew;
+  if (PyType_Ready(&CC_Image_PyType) < 0) Fatal("Failed to create image type");
+  Py_INCREF(self);
+  PyModule_AddObject(self, "Image", (PyObject*)&CC_Image_PyType);
 }
