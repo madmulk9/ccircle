@@ -56,7 +56,7 @@ class Character:
 
     def punch(self, enemyBlock):
         if not self.isPlayer:
-            pass
+            return 10 # temporary, will return a number equivalent to difficulty and the move being used
         else:
             if enemyBlock:
                 if self.stamina >= 1:

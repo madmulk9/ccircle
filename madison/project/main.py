@@ -14,10 +14,8 @@ colors = {
 textFont = ccircle.Font("pofont.ttf")
 pc = character.Character(True)
 enemy = character.Character(False)
-keyDown = False
 dt = 1.0 / 60.0
 frameCount = time.perf_counter()
-baseX = pc.x
 cdtime = 0.3
 cd = cdtime
 count = 0
@@ -37,8 +35,12 @@ def renderBG():
     window.drawRect(216, 64, 72, 48, *colors["gameblack"])
 
     # hp tracker and draw
+      # player's
     window.drawRect(352, 68, 192, 28, *colors["gameblack"])
-    window.drawRect(352, 68, 192 * (enemy.hp / enemy.maxHP), 28, *colors["hpcolor"])
+    window.drawRect(352, 68, 192 * (pc.hp / pc.maxHP), 28, *colors["hpcolor"])
+      # enemy's
+    window.drawRect(768, 68, -192, 28, *colors["gameblack"])
+    window.drawRect(768, 68, -192 * (enemy.hp / enemy.maxHP), 28, *colors["hpcolor"])
     # counter spaces
       # star counter (cur. unused)
     textFont.draw("0", 132, 100, 16, *colors["textShadow"])
@@ -54,10 +56,10 @@ def renderBG():
 while window.isOpen():
     renderBG()
 
-    if ccircle.isKeyDown('b') and not toggle:
+    if ccircle.wasKeyPressed('b') and not toggle:
         enemy.setBlock(True)
         toggle = True
-    elif ccircle.isKeyDown('b') and toggle:
+    elif ccircle.wasKeyPressed('b') and toggle:
         enemy.setBlock(False)
         toggle = False
 
@@ -77,55 +79,45 @@ while window.isOpen():
             enemy.takeDamage(pc.punch(enemy.getBlock()))
             hasDamaged = True
         pc.p_animLoop(curloop, count)
-    elif ccircle.isKeyDown("up"):
-        if not keyDown:
-            if cd > cdtime:
-                hasDamaged = False
-                keyDown = True
-                cd = 0
-                count = 0
-                curloop = "punch"
-        else:
-            pc.p_animLoop("idle", idlecount)
-    elif ccircle.isKeyDown("left"):
-        if not keyDown:
-            if cd > cdtime:
-                pc.dodge("l")
-                keyDown = True
-                cd = 0
-                count = 0
-                curloop = "dodgeLeft"
-        else:
-            pc.p_animLoop("idle", idlecount)
-    elif ccircle.isKeyDown("right"):
-        if not keyDown:
-            if cd > cdtime:
-                pc.dodge("r")
-                keyDown = True
-                cd = 0
-                count = 0
-                curloop = "dodgeRight"
-        else:
-            pc.p_animLoop("idle", idlecount)
+    elif ccircle.wasKeyPressed("up"):
+        if cd > cdtime:
+            hasDamaged = False
+            cd = 0
+            count = 0
+            curloop = "punch"
+    elif ccircle.wasKeyPressed("left"):
+        if cd > cdtime:
+            pc.dodge("l")
+            cd = 0
+            count = 0
+            curloop = "dodgeLeft"
+    elif ccircle.wasKeyPressed("right"):
+        if cd > cdtime:
+            pc.dodge("r")
+            keyDown = True
+            cd = 0
+            count = 0
+            curloop = "dodgeRight"
+    elif ccircle.wasKeyPressed("down"):
+        pc.takeDamage(enemy.punch(pc.getBlock()))
     else:
         keyDown = False
         curloop = "idle"
         pc.p_animLoop(curloop, idlecount)
-        #TODO: Add accurate sizes of icons
 
+    # TODO: Add accurate sizes of icons
 
+    # TODO: Round timer
 
-    #TODO: Round timer
-
-    #TODO: Win condition
+    # TODO: Win condition
 
     window.update()
 
-    #animation frame tracker reset
+    # idle animation frame tracker reset
     if idlecount > .9:
         idlecount = 0
 
-    #time updater
+    # time updater
     newCount = time.perf_counter()
     dt = newCount - frameCount
     frameCount = newCount
