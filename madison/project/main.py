@@ -4,94 +4,116 @@ import time
 
 window = ccircle.Window("Punch-Out!", 1024, 1024)
 background = ccircle.Image("bg.png")
-bgcolor = [0.364705882, 0.58039215686, 0.98431372549]
-gameblack = [0, 0.01176470588, 0.01176470588]
+colors = {
+    "bgcolor": [0.364705882, 0.58039215686, 0.98431372549],
+    "gameblack": [0, 0.01176470588, 0.01176470588],
+    "textColor": [0.69019607843, 0.95294117647, 0.73333333333],
+    "textShadow": [0.803921568627451, 0.22745098039215686, 0.1568627450980392],
+    "hpcolor": [1.0, 0.988235294, 1.0]
+}
 textFont = ccircle.Font("pofont.ttf")
-textColor = [0.69019607843, 0.95294117647, 0.73333333333]
-textShadow = [0.803921568627451, 0.22745098039215686, 0.1568627450980392]
 pc = character.Character(True)
 enemy = character.Character(False)
-hpcolor = [1.0, 0.988235294, 1.0]
 keyDown = False
 dt = 1.0 / 60.0
 frameCount = time.perf_counter()
 baseX = pc.x
-cd = 0
+cdtime = 0.3
+cd = cdtime
 count = 0
 idlecount = 0
 curloop = ""
 hasDamaged = False
+toggle = False
 
 def renderBG():
     # background stuff
     window.clear(0, 0, 0)
     background.draw(0, 0, 1024, 1024)
     # clearing visible logos and pre-existing numbers
-    window.drawRect(825, 62, 135, 74, *bgcolor)
-    window.drawRect(425, 100, 350, 36, *bgcolor)
-    window.drawRect(116, 64, 44, 48, *gameblack)
-    window.drawRect(216, 64, 72, 48, *gameblack)
+    window.drawRect(825, 62, 135, 74, *colors["bgcolor"])
+    window.drawRect(425, 100, 350, 36, *colors["bgcolor"])
+    window.drawRect(116, 64, 44, 48, *colors["gameblack"])
+    window.drawRect(216, 64, 72, 48, *colors["gameblack"])
 
     # hp tracker and draw
-    window.drawRect(352, 68, 192, 28, *gameblack)
-    window.drawRect(352, 68, 192 * (enemy.hp / enemy.maxHP), 28, *hpcolor)
+    window.drawRect(352, 68, 192, 28, *colors["gameblack"])
+    window.drawRect(352, 68, 192 * (enemy.hp / enemy.maxHP), 28, *colors["hpcolor"])
     # counter spaces
       # star counter (cur. unused)
-    textFont.draw("0", 132, 100, 16, *textShadow)
-    textFont.draw("0", 128, 100, 16, *textColor)
+    textFont.draw("0", 132, 100, 16, *colors["textShadow"])
+    textFont.draw("0", 128, 100, 16, *colors["textColor"])
       # stam counter
     if pc.stamina < 10:
-        textFont.draw("0" + str(pc.stamina), 228, 100, 16, *textShadow)
-        textFont.draw("0" + str(pc.stamina), 224, 100, 16, *textColor)
+        textFont.draw("0" + str(pc.stamina), 228, 100, 16, *colors["textShadow"])
+        textFont.draw("0" + str(pc.stamina), 224, 100, 16, *colors["textColor"])
     else:
-        textFont.draw(str(pc.stamina), 228, 100, 16, *textShadow)
-        textFont.draw(str(pc.stamina), 224, 100, 16, *textColor)
+        textFont.draw(str(pc.stamina), 228, 100, 16, *colors["textShadow"])
+        textFont.draw(str(pc.stamina), 224, 100, 16, *colors["textColor"])
 
 while window.isOpen():
     renderBG()
+
+    if ccircle.isKeyDown('b') and not toggle:
+        enemy.setBlock(True)
+        toggle = True
+    elif ccircle.isKeyDown('b') and toggle:
+        enemy.setBlock(False)
+        toggle = False
 
     # trackers based on dt (no visualization)
     idlecount += dt
     cd += dt
 
+    if pc.isTired:
+        cdtime = 1.0
+    else:
+        cdtime = 0.3
+
     # control area
-    if cd < .3:
+    if cd < cdtime:
         count += dt
-        if cd > .1 and curloop == "punch" and not hasDamaged:
-            enemy.takeDamage(pc.punch(False))
+        if cd > cdtime / 3 and curloop == "punch" and not hasDamaged:
+            enemy.takeDamage(pc.punch(enemy.getBlock()))
             hasDamaged = True
-        pc.animLoop(curloop, count)
+        pc.p_animLoop(curloop, count)
     elif ccircle.isKeyDown("up"):
         if not keyDown:
-            if cd > .3:
+            if cd > cdtime:
                 hasDamaged = False
                 keyDown = True
                 cd = 0
                 count = 0
                 curloop = "punch"
         else:
-            pc.animLoop("idle", idlecount)
+            pc.p_animLoop("idle", idlecount)
     elif ccircle.isKeyDown("left"):
         if not keyDown:
-            if cd > .3:
+            if cd > cdtime:
                 pc.dodge("l")
                 keyDown = True
                 cd = 0
+                count = 0
+                curloop = "dodgeLeft"
         else:
-            pc.animLoop("idle", idlecount)
+            pc.p_animLoop("idle", idlecount)
     elif ccircle.isKeyDown("right"):
         if not keyDown:
-            if cd > .3:
+            if cd > cdtime:
                 pc.dodge("r")
                 keyDown = True
                 cd = 0
+                count = 0
+                curloop = "dodgeRight"
         else:
-            pc.animLoop("idle", idlecount)
+            pc.p_animLoop("idle", idlecount)
     else:
         keyDown = False
         curloop = "idle"
-        pc.animLoop(curloop, idlecount)
+        pc.p_animLoop(curloop, idlecount)
         #TODO: Add accurate sizes of icons
+
+
 
     #TODO: Round timer
 
