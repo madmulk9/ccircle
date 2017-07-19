@@ -15,11 +15,12 @@ hpcolor = [1.0, 0.988235294, 1.0]
 keyDown = False
 dt = 1.0 / 60.0
 frameCount = time.perf_counter()
-x = 50
-cd = 0.5
+baseX = pc.x
+cd = 0
 count = 0
 idlecount = 0
 curloop = ""
+hasDamaged = False
 
 def renderBG():
     # background stuff
@@ -54,41 +55,53 @@ while window.isOpen():
     cd += dt
 
     # control area
-    if ccircle.isKeyDown("up"):
+    if cd < .3:
+        count += dt
+        if cd > .1 and curloop == "punch" and not hasDamaged:
+            enemy.takeDamage(pc.punch(False))
+            hasDamaged = True
+        pc.animLoop(curloop, count)
+    elif ccircle.isKeyDown("up"):
         if not keyDown:
-            if cd > .5:
-                enemy.takeDamage(pc.punch(False))
+            if cd > .3:
+                hasDamaged = False
                 keyDown = True
                 cd = 0
+                count = 0
                 curloop = "punch"
+        else:
+            pc.animLoop("idle", idlecount)
     elif ccircle.isKeyDown("left"):
         if not keyDown:
-            if cd > .5:
+            if cd > .3:
                 pc.dodge("l")
                 keyDown = True
                 cd = 0
+        else:
+            pc.animLoop("idle", idlecount)
     elif ccircle.isKeyDown("right"):
         if not keyDown:
-            if cd > .5:
+            if cd > .3:
                 pc.dodge("r")
                 keyDown = True
                 cd = 0
+        else:
+            pc.animLoop("idle", idlecount)
     else:
         keyDown = False
         curloop = "idle"
         pc.animLoop(curloop, idlecount)
+        #TODO: Add accurate sizes of icons
 
-    if cd < .5:
-        count += dt
-        pc.animLoop(curloop, count)
+    #TODO: Round timer
+
+    #TODO: Win condition
 
     window.update()
 
     #animation frame tracker reset
     if idlecount > .9:
         idlecount = 0
-    if count > .5:
-        count = 0
 
     #time updater
     newCount = time.perf_counter()

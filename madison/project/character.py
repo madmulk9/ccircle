@@ -55,8 +55,10 @@ class Character:
     def dodge(self, dodgeDir, dodgeLen = 1.5):
         if dodgeDir == "l":
             self.isDodging["left"] = True
+            self.isDodging["right"] = False
         if dodgeDir == "r":
             self.isDodging["right"] = True
+            self.isDodging["left"] = False
 
     def punch(self, enemyBlock, strikeDir=None):
         if not self.isPlayer:
@@ -84,13 +86,19 @@ class Character:
     def animLoop(self, state, count):
         if state == "idle":
             if count < .45:
-                self.spriteSheet.drawSub(self.x, self.y, 28, 66, *self.frames["idle"][0])
+                self.spriteSheet.drawSub(self.x - 2, self.y, 28*1.25, 66*1.25, *self.frames["idle"][0])
             else:
-                self.spriteSheet.drawSub(self.x, self.y, 28, 66, *self.frames["idle"][1])
+                self.spriteSheet.drawSub(self.x + 2, self.y, 28*1.25, 66*1.25, *self.frames["idle"][1])
         elif state == "punch":
-            if count < .1:
-                self.spriteSheet.drawSub(self.x, self.y + 10, 28, 66, *self.frames["attack"][0])
-            elif count < .2:
-                self.spriteSheet.drawSub(self.x, self.y - 15, 28, 66, *self.frames["attack"][1])
-            else:
-                self.spriteSheet.drawSub(self.x, self.y - 40, 28, 66, *self.frames["attack"][2])
+            if count < .05:
+                self.spriteSheet.drawSub(self.x, self.y + 5, 28*1.25, 66*1.25, *self.frames["attack"][0])
+            elif count < .10:
+                self.spriteSheet.drawSub(self.x, self.y - 15, 28*1.25, 66*1.25, *self.frames["attack"][1])
+            elif count < .25:
+                self.spriteSheet.drawSub(self.x, self.y - 30, 28*1.25, 66*1.25, *self.frames["attack"][2])
+            elif count < .3:
+                self.spriteSheet.drawSub(self.x, self.y - 15, 28*1.25, 66*1.25, *self.frames["attack"][1])
+        elif state == "dodgeLeft":
+            pass
+        elif state == "dodgeRight":
+            pass
